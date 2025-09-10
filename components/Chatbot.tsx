@@ -7,11 +7,6 @@ interface ChatbotProps {
   knowledgeBase: string;
 }
 
-// ⚠️ IMPORTANT: Replace this with your actual Google AI API key.
-// Your API key will be visible in the browser's source code.
-// Go to your Google Cloud console and RESTRICT this key to your website's domain for security.
-const API_KEY = "AIzaSyD6iz1SDnEJf7d1YkYgor4_3cGnGxnoH_8";
-
 const BotIcon = () => (
   <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold flex-shrink-0">
     Y
@@ -51,9 +46,10 @@ const Chatbot: React.FC<ChatbotProps> = ({ knowledgeBase }) => {
   }, [messages, isLoading]);
 
   useEffect(() => {
+    // FIX: Retrieve API Key from environment variables and check for its presence.
     // Check if the API key has been set. If not, show an error and stop.
-    if (!API_KEY || API_KEY === "YOUR_API_KEY_HERE") {
-      setError("API Key is missing. Please add your key to components/Chatbot.tsx");
+    if (!process.env.API_KEY) {
+      setError("API Key is missing. Please set the API_KEY environment variable.");
       return;
     }
 
@@ -71,7 +67,7 @@ Here are the knowledge bases you must use:
 ${knowledgeBase}`;
 
       try {
-        const ai = new GoogleGenAI({ apiKey: API_KEY });
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const newChat = ai.chats.create({
           model: 'gemini-2.5-flash',
           config: {

@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Yvonne's Chatbot</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Add Babel to transpile JSX in the browser -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script type="importmap">
 {
   "imports": {
@@ -18,6 +20,7 @@
 </head>
 <body class="bg-gray-100">
   <div id="root"></div>
-  <script type="module" src="./index.tsx"></script>
+  <!-- Update script type to text/babel so Babel can transpile it -->
+  <script type="text/babel" data-type="module" src="./index.tsx"></script>
 </body>
 </html>
