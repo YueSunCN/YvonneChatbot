@@ -7,6 +7,11 @@ interface ChatbotProps {
   knowledgeBase: string;
 }
 
+// ⚠️ IMPORTANT: Replace this with your actual Google AI API key.
+// Your API key will be visible in the browser's source code.
+// Go to your Google Cloud console and RESTRICT this key to your website's domain for security.
+const API_KEY = "AIzaSyArzXuQ64W1oa4vVymvVNWEvpxnk3zO6Bk";
+
 const BotIcon = () => (
   <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold flex-shrink-0">
     Y
@@ -46,6 +51,12 @@ const Chatbot: React.FC<ChatbotProps> = ({ knowledgeBase }) => {
   }, [messages, isLoading]);
 
   useEffect(() => {
+    // Check if the API key has been set. If not, show an error and stop.
+    if (!API_KEY || API_KEY === "YOUR_API_KEY_HERE") {
+      setError("API Key is missing. Please add your key to components/Chatbot.tsx");
+      return;
+    }
+
     if (knowledgeBase) {
       const systemInstruction = `You are a personal chatbot representing Yvonne (Yue) Sun. Your purpose is to help visitors learn more about her career journey, skills, and experiences. Your role is to go beyond the main points on her website by sharing additional context, background stories, and insights. Present information in a clear and professional manner to help users fully understand Yvonne’s expertise and what makes her unique.
 
@@ -60,7 +71,7 @@ Here are the knowledge bases you must use:
 ${knowledgeBase}`;
 
       try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+        const ai = new GoogleGenAI({ apiKey: API_KEY });
         const newChat = ai.chats.create({
           model: 'gemini-2.5-flash',
           config: {
@@ -76,7 +87,7 @@ ${knowledgeBase}`;
           },
         ]);
       } catch (e) {
-         setError('Failed to initialize the chatbot. Please check your API key and configuration.');
+         setError('Failed to initialize the chatbot. Please check the API key and configuration.');
          console.error(e);
       }
     }
@@ -148,8 +159,8 @@ ${knowledgeBase}`;
             </div>
           )}
            {error && (
-            <div className="flex justify-center">
-              <p className="text-red-500 text-sm mt-2">{error}</p>
+            <div className="flex justify-center p-4">
+              <p className="text-red-600 bg-red-100 p-3 rounded-lg text-sm mt-2">{error}</p>
             </div>
           )}
           <div ref={messagesEndRef} />
@@ -160,15 +171,15 @@ ${knowledgeBase}`;
           <input
             type="text"
             className="w-full pl-4 pr-12 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow duration-200 disabled:bg-gray-100"
-            placeholder="Type your message..."
+            placeholder={error ? "Chatbot is disabled." : "Type your message..."}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
-            disabled={isLoading || !chat}
+            disabled={isLoading || !chat || !!error}
           />
           <button
             onClick={handleSendMessage}
-            disabled={isLoading || !input.trim() || !chat}
+            disabled={isLoading || !input.trim() || !chat || !!error}
             className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-indigo-300 disabled:cursor-not-allowed transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
