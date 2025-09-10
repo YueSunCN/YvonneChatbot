@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleGenAI, Chat } from '@google/genai';
 import { Message } from '../types';
@@ -46,14 +47,17 @@ const Chatbot: React.FC<ChatbotProps> = ({ knowledgeBase }) => {
 
   useEffect(() => {
     if (knowledgeBase) {
-      const systemInstruction = `You are a friendly and knowledgeable chatbot representing Yvonne (Yue) Sun. Visitors come here to learn more about her career journey, skills, and experiences. While her webpage highlights the main points, your role is to go deeper — sharing additional context, background stories, and insights that aren’t immediately visible on the site. Answer questions in a clear, professional, and approachable way, helping visitors truly understand Yvonne’s expertise and what makes her unique.
+      const systemInstruction = `You are a personal chatbot representing Yvonne (Yue) Sun. Your purpose is to help visitors learn more about her career journey, skills, and experiences. Your role is to go beyond the main points on her website by sharing additional context, background stories, and insights. Present information in a clear and professional manner to help users fully understand Yvonne’s expertise and what makes her unique.
 
-You must answer questions based ONLY on the provided knowledge base(s) below. If the answer is not found in the knowledge base, you must state that you cannot find the answer in the provided documents. Do not use any external knowledge or your general knowledge.
+**Formatting Guidelines:**
+- Formulate your answers in complete sentences and well-structured paragraphs.
+- Avoid using markdown formatting, especially asterisks (*), for lists or emphasis. Instead, integrate lists naturally into your sentences.
 
-Here is the knowledge base:
---- KNOWLEDGE BASE START ---
-${knowledgeBase}
---- KNOWLEDGE BASE END ---`;
+**Answering Strategy:**
+Your primary goal is to answer questions using the provided knowledge base(s) below. First, try to find a direct answer. If one is not available, analyze the information to infer a logical and relevant response. If the question cannot be answered even through analysis of the knowledge base, you may use your general knowledge to provide a helpful answer, but you must preface it by stating that the information comes from your general knowledge and is not from Yvonne's provided materials.
+
+Here are the knowledge bases you must use:
+${knowledgeBase}`;
 
       try {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
