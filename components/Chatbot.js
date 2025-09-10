@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleGenAI, Chat } from '@google/genai';
-import { Message } from '../types.ts';
+import { Message } from '../types.js';
 
 // IMPORTANT: For deployment on a static host like GitHub Pages, the API key must be placed here.
 // Make sure to restrict your key in the Google Cloud Console to only work on your website's URL.
@@ -52,7 +52,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ knowledgeBase }) => {
   useEffect(() => {
     // Corrected API Key Check
     if (!API_KEY || API_KEY.includes("PASTE_YOUR_API_KEY_HERE")) {
-      setError("API key is missing or is a placeholder. Please add your valid API key in components/Chatbot.tsx");
+      setError("API key is missing or is a placeholder. Please add your valid API key in components/Chatbot.js");
       return;
     }
 
@@ -181,7 +181,7 @@ ${knowledgeBase}`;
             disabled={isLoading || !input.trim() || !chat || !!error}
             className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-indigo-300 disabled:cursor-not-allowed transition-colors"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
             </svg>
           </button>
