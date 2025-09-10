@@ -10,7 +10,7 @@ interface ChatbotProps {
 // ⚠️ IMPORTANT: Replace this with your actual Google AI API key.
 // Your API key will be visible in the browser's source code.
 // Go to your Google Cloud console and RESTRICT this key to your website's domain for security.
-const API_KEY = "AIzaSyArzXuQ64W1oa4vVymvVNWEvpxnk3zO6Bk";
+const API_KEY = "AIzaSyD6iz1SDnEJf7d1YkYgor4_3cGnGxnoH_8";
 
 const BotIcon = () => (
   <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold flex-shrink-0">
