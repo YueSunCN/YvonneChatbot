@@ -1,5 +1,6 @@
-import { profileKnowledgeBase } from './kb_profile';
-import { projectsKnowledgeBase } from './kb_projects';
+
+import { profileKnowledgeBase } from './kb_profile.ts';
+import { projectsKnowledgeBase } from './kb_projects.ts';
 
 // This is the central configuration file for the chatbot's knowledge base.
 // To add new knowledge, create a new file (e.g., kb_new_topic.ts),

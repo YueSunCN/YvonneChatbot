@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleGenAI, Chat } from '@google/genai';
-import { Message } from '../types';
+import { Message } from '../types.ts';
 
 interface ChatbotProps {
   knowledgeBase: string;

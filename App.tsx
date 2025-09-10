@@ -1,6 +1,7 @@
+
 import React from 'react';
-import Chatbot from './components/Chatbot';
-import { knowledgeBases } from './knowledge-base';
+import Chatbot from './components/Chatbot.tsx';
+import { knowledgeBases } from './knowledge-base/index.ts';
 
 const App: React.FC = () => {
   // Combine all configured knowledge bases into a single string for the chatbot.
