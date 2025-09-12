@@ -15,11 +15,9 @@ const App: React.FC = () => {
     .join('\n\n');
 
   return (
-    <div className="min-h-screen font-sans antialiased text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-900 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-4xl h-[85vh] md:h-[90vh]">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 flex flex-col h-full">
-           <Chatbot knowledgeBase={combinedKnowledgeBase} />
-        </div>
+    <div className="h-screen w-screen p-4 font-sans antialiased text-gray-800 dark:text-gray-200">
+      <div className="h-full w-full flex flex-col bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-lg overflow-hidden">
+        <Chatbot knowledgeBase={combinedKnowledgeBase} />
       </div>
     </div>
   );
