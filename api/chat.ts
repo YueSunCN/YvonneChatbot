@@ -14,7 +14,8 @@ export default async function handler(
   // Ensure the API key is available as an environment variable on the server.
   const apiKey = process.env.GEMINI_APNWEvpxnk3zO6BkI_KEY;
   if (!apiKey) {
-    return response.status(500).json({ error: 'API key not configured' });
+    console.error('API_KEY is not configured in Vercel environment variables.');
+    return response.status(500).json({ error: 'API key not configured on the server.' });
   }
 
   try {
@@ -56,8 +57,18 @@ ${knowledgeBase}`;
     // Send the model's response back to the frontend.
     response.status(200).json({ text: result.text });
 
-  } catch (error) {
-    console.error(error);
-    response.status(500).json({ error: 'Failed to communicate with the AI service.' });
+  } catch (error: unknown) {
+    let errorMessage = 'An unexpected error occurred.';
+    if (error instanceof Error) {
+        errorMessage = error.message;
+    }
+    // Log the detailed error to the Vercel console for debugging.
+    console.error('Error communicating with AI service:', error);
+    
+    // Send a more structured error back to the frontend.
+    response.status(500).json({ 
+        error: 'Failed to communicate with the AI service.',
+        details: errorMessage 
+    });
   }
 }

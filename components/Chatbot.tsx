@@ -1,28 +1,29 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Message } from '../types';
+import { themeConfig } from '../theme';
 
 interface ChatbotProps {
   knowledgeBase: string;
 }
 
 const BotIcon = () => (
-  <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold flex-shrink-0">
+  <div className={`w-8 h-8 rounded-full bg-${themeConfig.primaryColor}-500 flex items-center justify-center text-white font-bold flex-shrink-0`}>
     Y
   </div>
 );
 
 const UserIcon = () => (
-  <div className="w-8 h-8 rounded-full bg-gray-600 dark:bg-gray-500 flex items-center justify-center text-white font-bold flex-shrink-0">
+  <div className={`w-8 h-8 rounded-full bg-${themeConfig.userAvatarColor}-600 dark:bg-${themeConfig.userAvatarColor}-500 flex items-center justify-center text-white font-bold flex-shrink-0`}>
     U
   </div>
 );
 
 const TypingIndicator = () => (
     <div className="flex items-center space-x-1 p-2">
-        <div className="w-2 h-2 bg-indigo-300 dark:bg-indigo-500 rounded-full animate-pulse [animation-delay:-0.3s]"></div>
-        <div className="w-2 h-2 bg-indigo-300 dark:bg-indigo-500 rounded-full animate-pulse [animation-delay:-0.15s]"></div>
-        <div className="w-2 h-2 bg-indigo-300 dark:bg-indigo-500 rounded-full animate-pulse"></div>
+        <div className={`w-2 h-2 bg-${themeConfig.primaryColor}-300 dark:bg-${themeConfig.primaryColor}-500 rounded-full animate-pulse [animation-delay:-0.3s]`}></div>
+        <div className={`w-2 h-2 bg-${themeConfig.primaryColor}-300 dark:bg-${themeConfig.primaryColor}-500 rounded-full animate-pulse [animation-delay:-0.15s]`}></div>
+        <div className={`w-2 h-2 bg-${themeConfig.primaryColor}-300 dark:bg-${themeConfig.primaryColor}-500 rounded-full animate-pulse`}></div>
     </div>
 );
 
@@ -128,7 +129,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ knowledgeBase }) => {
               {message.role === 'bot' && <BotIcon />}
               <div className={`max-w-xs md:max-w-md lg:max-w-lg px-4 py-2 rounded-xl ${
                   message.role === 'user'
-                    ? 'bg-indigo-600 text-white rounded-br-none'
+                    ? `bg-${themeConfig.primaryColor}-600 text-white rounded-br-none`
                     : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-bl-none'
                 }`}>
                 <p className="text-sm" style={{ whiteSpace: 'pre-wrap' }}>{message.text}</p>
@@ -156,7 +157,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ knowledgeBase }) => {
         <div className="relative">
           <input
             type="text"
-            className="w-full pl-4 pr-12 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow duration-200 disabled:bg-gray-100 dark:disabled:bg-gray-600"
+            className={`w-full pl-4 pr-12 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-full focus:ring-2 focus:ring-${themeConfig.primaryColor}-500 focus:border-${themeConfig.primaryColor}-500 transition-shadow duration-200 disabled:bg-gray-100 dark:disabled:bg-gray-600`}
             placeholder="Type your message..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -166,7 +167,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ knowledgeBase }) => {
           <button
             onClick={handleSendMessage}
             disabled={isLoading || !input.trim() || !isInitialized}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-indigo-300 dark:disabled:bg-indigo-800 dark:disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+            className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-${themeConfig.primaryColor}-600 text-white hover:bg-${themeConfig.primaryColor}-700 disabled:bg-${themeConfig.primaryColor}-300 dark:disabled:bg-${themeConfig.primaryColor}-800 dark:disabled:text-gray-400 disabled:cursor-not-allowed transition-colors`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
