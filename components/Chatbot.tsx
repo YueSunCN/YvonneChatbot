@@ -33,8 +33,18 @@ const Chatbot: React.FC<ChatbotProps> = ({ knowledgeBase }) => {
   const [input, setInput] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let sid = localStorage.getItem('chat-session-id');
+    if (!sid) {
+      sid = crypto.randomUUID();
+      localStorage.setItem('chat-session-id', sid);
+    }
+    setSessionId(sid);
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -84,26 +94,23 @@ const Chatbot: React.FC<ChatbotProps> = ({ knowledgeBase }) => {
 
 
   const handleSendMessage = useCallback(async () => {
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || !sessionId) return;
 
     const userMessage: Message = { id: Date.now().toString(), role: 'user', text: input, timestamp: Date.now() };
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
+    setMessages(prev => [...prev, userMessage]);
+    const currentInput = input;
     setInput('');
     setIsLoading(true);
     setError(null);
-
-    // We pass the conversation history (excluding the initial welcome message) to our serverless function.
-    const history = messages.slice(1).map(msg => ({ role: msg.role, text: msg.text }));
 
     try {
       const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-              history,
               knowledgeBase,
-              message: input
+              message: currentInput,
+              sessionId
           }),
       });
 
@@ -130,7 +137,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ knowledgeBase }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading, messages, knowledgeBase]);
+  }, [input, isLoading, messages, knowledgeBase, sessionId]);
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
