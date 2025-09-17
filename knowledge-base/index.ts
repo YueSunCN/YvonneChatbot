@@ -1,6 +1,7 @@
 import { profileKnowledgeBase } from './kb_profile';
 import { projectsKnowledgeBase } from './kb_projects';
 import { guideKnowledgeBase } from './kb_guide';
+import { abbreviationsKnowledgeBase } from './kb_abbreviations';
 
 // This is the central configuration file for the chatbot's knowledge base.
 // To add new knowledge, create a new file (e.g., kb_new_topic.ts),
@@ -18,5 +19,9 @@ export const knowledgeBases = [
   {
     name: 'Webpage Guide',
     content: guideKnowledgeBase,
+  },
+  {
+    name: 'Abbreviations',
+    content: abbreviationsKnowledgeBase,
   },
 ];

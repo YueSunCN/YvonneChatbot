@@ -33,8 +33,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ knowledgeBase }) => {
   const [input, setInput] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [isInitialized, setIsInitialized] = useState<boolean>(false);
-
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -45,25 +44,49 @@ const Chatbot: React.FC<ChatbotProps> = ({ knowledgeBase }) => {
     scrollToBottom();
   }, [messages, isLoading]);
   
-  // Initialize chatbot with a welcome message.
+  // Load messages from localStorage on initial render, or set a welcome message.
   useEffect(() => {
-    if (knowledgeBase && !isInitialized) {
-      setMessages([
-        {
-          id: 'init',
-          role: 'bot',
-          text: "Hi there, this is Yvonne's chatbot, welcome to ask me anything.",
-        },
-      ]);
-      setIsInitialized(true);
+    try {
+      const savedMessagesJSON = localStorage.getItem('chat-logs');
+      if (savedMessagesJSON) {
+        const savedMessages = JSON.parse(savedMessagesJSON);
+        if (Array.isArray(savedMessages) && savedMessages.length > 0) {
+          setMessages(savedMessages);
+          return;
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load messages from localStorage", e);
+      localStorage.removeItem('chat-logs'); // Clear corrupted data
     }
-  }, [knowledgeBase, isInitialized]);
+    
+    // Fallback to initial message if nothing is loaded
+    setMessages([
+      {
+        id: 'init',
+        role: 'bot',
+        text: "Hi there, this is Yvonne's chatbot, welcome to ask me anything.",
+        timestamp: Date.now(),
+      },
+    ]);
+  }, []);
+
+  // Save messages to localStorage whenever they change.
+  useEffect(() => {
+    if (messages.length > 0) {
+      try {
+        localStorage.setItem('chat-logs', JSON.stringify(messages));
+      } catch (e) {
+        console.error("Failed to save messages to localStorage", e);
+      }
+    }
+  }, [messages]);
 
 
   const handleSendMessage = useCallback(async () => {
-    if (!input.trim() || isLoading || !isInitialized) return;
+    if (!input.trim() || isLoading) return;
 
-    const userMessage: Message = { id: Date.now().toString(), role: 'user', text: input };
+    const userMessage: Message = { id: Date.now().toString(), role: 'user', text: input, timestamp: Date.now() };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput('');
@@ -95,18 +118,19 @@ const Chatbot: React.FC<ChatbotProps> = ({ knowledgeBase }) => {
         id: (Date.now() + 1).toString(),
         role: 'bot',
         text: data.text,
+        timestamp: Date.now(),
       };
       setMessages(prev => [...prev, botMessage]);
 
     } catch (e: any) {
       const errorMessage = 'Sorry, I encountered an error. Please try again.';
       setError(errorMessage);
-      setMessages(prev => [...prev, {id: 'error', role: 'bot', text: errorMessage}]);
+      setMessages(prev => [...prev, {id: 'error', role: 'bot', text: errorMessage, timestamp: Date.now()}]);
       console.error(e);
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading, messages, knowledgeBase, isInitialized]);
+  }, [input, isLoading, messages, knowledgeBase]);
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -162,11 +186,11 @@ const Chatbot: React.FC<ChatbotProps> = ({ knowledgeBase }) => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
-            disabled={isLoading || !isInitialized}
+            disabled={isLoading}
           />
           <button
             onClick={handleSendMessage}
-            disabled={isLoading || !input.trim() || !isInitialized}
+            disabled={isLoading || !input.trim()}
             className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-${themeConfig.primaryColor}-600 text-white hover:bg-${themeConfig.primaryColor}-700 disabled:bg-${themeConfig.primaryColor}-300 dark:disabled:bg-${themeConfig.primaryColor}-800 dark:disabled:text-gray-400 disabled:cursor-not-allowed transition-colors`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
