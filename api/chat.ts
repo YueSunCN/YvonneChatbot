@@ -1,7 +1,6 @@
+
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI } from '@google/genai';
-import { kv } from '@vercel/kv';
-import { Message } from '../types';
 
 // This function is the serverless endpoint.
 export default async function handler(
@@ -20,17 +19,13 @@ export default async function handler(
   }
 
   try {
-    const { knowledgeBase, message, sessionId } = request.body;
+    const { history, knowledgeBase, message } = request.body;
 
-    if (!knowledgeBase || !message || !sessionId) {
-      return response.status(400).json({ error: 'Missing required fields: knowledgeBase, message, sessionId' });
+    if (!history || !knowledgeBase || !message) {
+      return response.status(400).json({ error: 'Missing required fields: history, knowledgeBase, message' });
     }
 
     const ai = new GoogleGenAI({ apiKey });
-    const conversationKey = `log_${sessionId}`;
-    
-    // Retrieve conversation history from Vercel KV, deserializing JSON strings into Message objects.
-    const historyFromKV: Message[] = await kv.lrange<Message>(conversationKey, 0, -1);
 
     // Construct the system instruction and initialize the chat model.
     const systemInstruction = `You are a personal chatbot representing Yvonne (Yue) Sun. Your purpose is to help visitors learn more about her career journey, skills, and experiences. Your role is to go beyond the main points on her website by sharing additional context, background stories, and insights. Present information in a clear and professional manner to help users fully understand Yvonne’s expertise and what makes her unique.
@@ -51,25 +46,16 @@ ${knowledgeBase}`;
         systemInstruction: systemInstruction,
       },
       // Pass the previous conversation history to the model.
-      history: historyFromKV.map((msg: Message) => ({
-        // The bot's role must be 'model' for the Gemini API history.
+      history: history.map((msg: { role: string, text: string }) => ({
         role: msg.role === 'bot' ? 'model' : 'user',
         parts: [{ text: msg.text }],
       })),
     });
 
     const result = await chat.sendMessage({ message });
-    const botResponseText = result.text;
-    
-    // Create records for the user's message and the bot's response.
-    const userMessageToStore: Message = { id: Date.now().toString(), role: 'user', text: message, timestamp: Date.now() };
-    const botMessageToStore: Message = { id: (Date.now() + 1).toString(), role: 'bot', text: botResponseText, timestamp: Date.now() };
-
-    // Atomically append both messages to the conversation log in Vercel KV.
-    await kv.rpush(conversationKey, userMessageToStore, botMessageToStore);
     
     // Send the model's response back to the frontend.
-    response.status(200).json({ text: botResponseText });
+    response.status(200).json({ text: result.text });
 
   } catch (error: unknown) {
     let errorMessage = 'An unexpected error occurred.';
