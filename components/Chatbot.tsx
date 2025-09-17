@@ -33,18 +33,9 @@ const Chatbot: React.FC<ChatbotProps> = ({ knowledgeBase }) => {
   const [input, setInput] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
 
-  useEffect(() => {
-    let sid = localStorage.getItem('chat-session-id');
-    if (!sid) {
-      sid = crypto.randomUUID();
-      localStorage.setItem('chat-session-id', sid);
-    }
-    setSessionId(sid);
-  }, []);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -54,63 +45,42 @@ const Chatbot: React.FC<ChatbotProps> = ({ knowledgeBase }) => {
     scrollToBottom();
   }, [messages, isLoading]);
   
-  // Load messages from localStorage on initial render, or set a welcome message.
+  // Initialize chatbot with a welcome message.
   useEffect(() => {
-    try {
-      const savedMessagesJSON = localStorage.getItem('chat-logs');
-      if (savedMessagesJSON) {
-        const savedMessages = JSON.parse(savedMessagesJSON);
-        if (Array.isArray(savedMessages) && savedMessages.length > 0) {
-          setMessages(savedMessages);
-          return;
-        }
-      }
-    } catch (e) {
-      console.error("Failed to load messages from localStorage", e);
-      localStorage.removeItem('chat-logs'); // Clear corrupted data
+    if (knowledgeBase && !isInitialized) {
+      setMessages([
+        {
+          id: 'init',
+          role: 'bot',
+          text: "Hi there, this is Yvonne's chatbot, welcome to ask me anything.",
+        },
+      ]);
+      setIsInitialized(true);
     }
-    
-    // Fallback to initial message if nothing is loaded
-    setMessages([
-      {
-        id: 'init',
-        role: 'bot',
-        text: "Hi there, this is Yvonne's chatbot, welcome to ask me anything.",
-        timestamp: Date.now(),
-      },
-    ]);
-  }, []);
-
-  // Save messages to localStorage whenever they change.
-  useEffect(() => {
-    if (messages.length > 0) {
-      try {
-        localStorage.setItem('chat-logs', JSON.stringify(messages));
-      } catch (e) {
-        console.error("Failed to save messages to localStorage", e);
-      }
-    }
-  }, [messages]);
+  }, [knowledgeBase, isInitialized]);
 
 
   const handleSendMessage = useCallback(async () => {
-    if (!input.trim() || isLoading || !sessionId) return;
+    if (!input.trim() || isLoading || !isInitialized) return;
 
-    const userMessage: Message = { id: Date.now().toString(), role: 'user', text: input, timestamp: Date.now() };
-    setMessages(prev => [...prev, userMessage]);
-    const currentInput = input;
+    const userMessage: Message = { id: Date.now().toString(), role: 'user', text: input };
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setInput('');
     setIsLoading(true);
     setError(null);
+
+    // We pass the conversation history (excluding the initial welcome message) to our serverless function.
+    const history = messages.slice(1).map(msg => ({ role: msg.role, text: msg.text }));
 
     try {
       const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+              history,
               knowledgeBase,
-              message: currentInput,
-              sessionId
+              message: input
           }),
       });
 
@@ -125,19 +95,18 @@ const Chatbot: React.FC<ChatbotProps> = ({ knowledgeBase }) => {
         id: (Date.now() + 1).toString(),
         role: 'bot',
         text: data.text,
-        timestamp: Date.now(),
       };
       setMessages(prev => [...prev, botMessage]);
 
     } catch (e: any) {
       const errorMessage = 'Sorry, I encountered an error. Please try again.';
       setError(errorMessage);
-      setMessages(prev => [...prev, {id: 'error', role: 'bot', text: errorMessage, timestamp: Date.now()}]);
+      setMessages(prev => [...prev, {id: 'error', role: 'bot', text: errorMessage}]);
       console.error(e);
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading, messages, knowledgeBase, sessionId]);
+  }, [input, isLoading, messages, knowledgeBase, isInitialized]);
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -193,11 +162,11 @@ const Chatbot: React.FC<ChatbotProps> = ({ knowledgeBase }) => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
-            disabled={isLoading}
+            disabled={isLoading || !isInitialized}
           />
           <button
             onClick={handleSendMessage}
-            disabled={isLoading || !input.trim()}
+            disabled={isLoading || !input.trim() || !isInitialized}
             className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-${themeConfig.primaryColor}-600 text-white hover:bg-${themeConfig.primaryColor}-700 disabled:bg-${themeConfig.primaryColor}-300 dark:disabled:bg-${themeConfig.primaryColor}-800 dark:disabled:text-gray-400 disabled:cursor-not-allowed transition-colors`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
