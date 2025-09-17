@@ -1,4 +1,3 @@
-
 import { kv } from '@vercel/kv';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { Message } from '../types';
@@ -18,7 +17,8 @@ export default async function handler(
     // Scan for all keys matching the 'log_' prefix
     do {
       const [nextCursor, keys] = await kv.scan(cursor, { match: 'log_*' });
-      cursor = nextCursor;
+      // The cursor returned by kv.scan is a string, so it must be converted to a number.
+      cursor = Number(nextCursor);
       allKeys.push(...keys);
     } while (cursor !== 0);
 
@@ -28,13 +28,13 @@ export default async function handler(
 
     const logsBySession: Record<string, Message[]> = {};
     
-    // Fetch all logs in parallel for better performance
-    const promises = allKeys.map(key => kv.lrange(key, 0, -1));
+    // Fetch all logs in parallel, deserializing JSON strings into Message objects.
+    const promises = allKeys.map(key => kv.lrange<Message>(key, 0, -1));
     const allLogs = await Promise.all(promises);
 
     allKeys.forEach((key, index) => {
         const sessionId = key.replace('log_', '');
-        logsBySession[sessionId] = allLogs[index] as Message[];
+        logsBySession[sessionId] = allLogs[index];
     });
     
     return res.status(200).json(logsBySession);

@@ -1,4 +1,3 @@
-
 import { kv } from '@vercel/kv';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
@@ -17,7 +16,8 @@ export default async function handler(
     // Scan for all keys matching the 'log_' prefix
     do {
       const [nextCursor, keys] = await kv.scan(cursor, { match: 'log_*' });
-      cursor = nextCursor;
+      // The cursor returned by kv.scan is a string, so it must be converted to a number.
+      cursor = Number(nextCursor);
       allKeys.push(...keys);
     } while (cursor !== 0);
 

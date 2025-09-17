@@ -1,4 +1,3 @@
-
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI } from '@google/genai';
 import { kv } from '@vercel/kv';
@@ -30,8 +29,8 @@ export default async function handler(
     const ai = new GoogleGenAI({ apiKey });
     const conversationKey = `log_${sessionId}`;
     
-    // Retrieve the conversation history from Vercel KV.
-    const historyFromKV: Message[] = await kv.lrange(conversationKey, 0, -1);
+    // Retrieve conversation history from Vercel KV, deserializing JSON strings into Message objects.
+    const historyFromKV: Message[] = await kv.lrange<Message>(conversationKey, 0, -1);
 
     // Construct the system instruction and initialize the chat model.
     const systemInstruction = `You are a personal chatbot representing Yvonne (Yue) Sun. Your purpose is to help visitors learn more about her career journey, skills, and experiences. Your role is to go beyond the main points on her website by sharing additional context, background stories, and insights. Present information in a clear and professional manner to help users fully understand Yvonne’s expertise and what makes her unique.
@@ -52,7 +51,8 @@ ${knowledgeBase}`;
         systemInstruction: systemInstruction,
       },
       // Pass the previous conversation history to the model.
-      history: historyFromKV.map((msg: { role: string, text: string }) => ({
+      history: historyFromKV.map((msg: Message) => ({
+        // The bot's role must be 'model' for the Gemini API history.
         role: msg.role === 'bot' ? 'model' : 'user',
         parts: [{ text: msg.text }],
       })),
