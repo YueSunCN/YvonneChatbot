@@ -1,6 +1,7 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI } from '@google/genai';
+import { Redis } from 'ioredis';
 
 // This function is the serverless endpoint.
 export default async function handler(
@@ -54,6 +55,24 @@ ${knowledgeBase}`;
 
     const result = await chat.sendMessage({ message });
     
+    // Log conversation to Redis if REDIS_URL is configured.
+    if (process.env.REDIS_URL) {
+      try {
+        const redis = new Redis(process.env.REDIS_URL);
+        const logEntry = {
+          timestamp: new Date().toISOString(),
+          user: message,
+          bot: result.text,
+          history: history,
+        };
+        await redis.lpush('conversation_logs', JSON.stringify(logEntry));
+        await redis.quit();
+      } catch (redisError) {
+        console.error('Failed to log conversation to Redis:', redisError);
+        // Do not block the response to the user if Redis fails.
+      }
+    }
+
     // Send the model's response back to the frontend.
     response.status(200).json({ text: result.text });
 
